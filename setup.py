@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='misaki',  # Name of the package
-    version='0.1.0',           # Initial version
+    version='0.2.0',           # Initial version
     packages=find_packages(),  # Automatically finds packages
     install_requires=[         # List your dependencies here
         'num2words',
