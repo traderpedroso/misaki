@@ -2,16 +2,10 @@ from dataclasses import dataclass, replace
 from num2words import num2words
 from pathlib import Path
 from typing import Optional, Union
-import csv
 import json
 import numpy as np
-import phonemizer
 import re
 import spacy
-import time
-
-# spacy.cli.download('en_core_web_sm')
-# spacy.cli.download('en_core_web_trf')
 
 DIPHTHONGS = frozenset('AIOQWYʤʧ')
 
@@ -91,8 +85,6 @@ CURRENCIES = {
 }
 ORDINALS = frozenset(['st', 'nd', 'rd', 'th'])
 
-NNPs = frozenset(['AA','ABS','ACT','AD','ADD','AG','AH','AI','AID','AM','AS','BA','BE','BO','CAP','CIS','COD','COO','DA','DAB','DEW','DIP','DOE','ELF','ER','EST','ETA','GI','HE','HI','HM','HMM','ID','IN','IS','ISO','IT','LA','LEA','LED','LI','MA','ME','MI','MM','MO','MOD','MOR','MOT','OD','OFT','OH','OR','OS','OU','PA','POW','RE','RIP','SAT','SEC','SI','SIB','SOB','TA','US','WHO'])
-
 ADD_SYMBOLS = {'.':'dot', '/':'slash'}
 SYMBOLS = {'%':'percent', '&':'and', '+':'plus', '@':'at'}
 
@@ -100,7 +92,7 @@ US_VOCAB = frozenset('AIOWYbdfhijklmnpstuvwzæðŋɑɔəɛɜɡɪɹɾʃʊʌʒʤʧ
 GB_VOCAB = frozenset('AIQWYabdfhijklmnpstuvwzðŋɑɒɔəɛɜɡɪɹʃʊʌʒʤʧˈˌːθᵊ')
 
 STRESSES = 'ˌˈ'
-VOWELS = frozenset('AIOQWYaiuæɑɒɔəɛɜɪʊʌᵻ')# + 'ɐ')
+VOWELS = frozenset('AIOQWYaiuæɑɒɔəɛɜɪʊʌᵻ')
 def apply_stress(ps, stress):
     def restress(ps):
         ips = list(enumerate(ps))
@@ -437,14 +429,15 @@ class Lexicon:
                 return apply_stress(self.append_currency(ps, t.currency), t.stress), rating
         return None, None
 
-FROM_ESPEAKS = sorted({'\u0303':'','a^ɪ':'I','a^ʊ':'W','d^ʒ':'ʤ','e':'A','e^ɪ':'A','r':'ɹ','t^ʃ':'ʧ','x':'k','ç':'k','ɐ':'ə','ɔ^ɪ':'Y','ə^l':'ᵊl','ɚ':'əɹ','ɬ':'l','ʔ':'t','ʔn':'tᵊn','ʔˌn\u0329':'tᵊn','ʲ':'','ʲO':'jO','ʲQ':'jQ'}.items(), key=lambda kv: -len(kv[0]))
-
 class G2P:
-    def __init__(self, trf, british, espeak):
+    def __init__(self, trf=False, british=False, fallback=None):
         self.british = british
-        self.nlp = spacy.load(f"en_core_web_{'trf' if trf else 'sm'}")
+        name = f"en_core_web_{'trf' if trf else 'sm'}"
+        if not spacy.util.is_package(name):
+            spacy.cli.download(name)
+        self.nlp = spacy.load(name)
         self.lexicon = Lexicon(british)
-        self.espeak = phonemizer.backend.EspeakBackend(language=f"en-{'gb' if british else 'us'}", preserve_punctuation=True, with_stress=True, tie='^') if espeak else None
+        self.fallback = fallback if fallback else (lambda _: None, None)
 
     @classmethod
     def preprocess(cls, text):
@@ -464,8 +457,6 @@ class G2P:
                 f = -0.5
             elif len(f) > 1 and f[0] == '/' and f[-1] == '/':
                 f = f[0] + f[1:].rstrip('/')
-            # elif len(f) > 1 and f[0] == '[' and f[-1] == ']':
-            #     f = f.rstrip(']')
             elif len(f) > 1 and f[0] == '#' and f[-1] == '#':
                 f = f[0] + f[1:].rstrip('#')
             else:
@@ -590,32 +581,9 @@ class G2P:
         for _, _, i in indices:
             tokens[i].phonemes = apply_stress(tokens[i].phonemes, -0.5)
 
-    def fallback(self, token):
-        if self.espeak is None:
-            return None, None
-        ps = self.espeak.phonemize([token.text])
-        if not ps:
-            return None, None
-        ps = ps[0].strip()
-        for old, new in FROM_ESPEAKS:
-            ps = ps.replace(old, new)
-        ps = re.sub(r'(\S)\u0329', r'ᵊ\1', ps).replace(chr(809), '')
-        if self.british:
-            ps = ps.replace('e^ə', 'ɛː')
-            ps = ps.replace('iə', 'ɪə')
-            ps = ps.replace('ə^ʊ', 'Q')
-        else:
-            ps = ps.replace('o^ʊ', 'O')
-            ps = ps.replace('ɜːɹ', 'ɜɹ')
-            ps = ps.replace('ɜː', 'ɜɹ')
-            ps = ps.replace('ɪə', 'iə')
-            ps = ps.replace('ː', '')
-        return ps.replace('^', ''), 2
-
     def __call__(self, text, preprocess=True):
         preprocess = type(self).preprocess if preprocess == True else preprocess
         text, tokens, features = preprocess(text) if preprocess else (text, [], {})
-        # print(text)
         tokens = self.tokenize(text, tokens, features)
         tokens = type(self).retokenize(tokens)
         ctx = TokenContext()
