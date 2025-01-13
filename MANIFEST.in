@@ -1,1 +1,4 @@
+include misaki/data/*.csv
 include misaki/data/*.json
+include misaki/data/*.tsv
+include misaki/data/*.txt
