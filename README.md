@@ -12,11 +12,11 @@ from misaki import en
 
 g2p = en.G2P(trf=False, british=False, fallback=None) # no transformer, American English
 
-text = '[Misaki](/misˈɑki/) is a G2P engine designed for [Kokoro](/kˈOkəɹO/) models. Destress like [this](-2), [or](+2) increase stress like that.'
+text = '[Misaki](/misˈɑki/) is a G2P engine designed for [Kokoro](/kˈOkəɹO/) models.'
 
 phonemes, tokens = g2p(text)
 
-print(phonemes) # misˈɑki ɪz ə ʤˈitəpˈi ˈɛnʤən dəzˈInd fɔɹ kˈOkəɹO mˈɑdᵊlz. dᵻstɹˈɛs lˈIk ðɪs, ˈɔɹ ɪnkɹˈis stɹˈɛs lˈIk ðˈæt.
+print(phonemes) # misˈɑki ɪz ə ʤˈitəpˈi ˈɛnʤən dəzˈInd fɔɹ kˈOkəɹO mˈɑdᵊlz.
 ```
 
 ### Phonemes

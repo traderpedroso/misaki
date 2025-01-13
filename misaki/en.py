@@ -440,7 +440,7 @@ class G2P:
             spacy.cli.download(name)
         self.nlp = spacy.load(name)
         self.lexicon = Lexicon(british)
-        self.fallback = fallback if fallback else (lambda _: None, None)
+        self.fallback = fallback if fallback else (lambda _: (None, None))
         self.unk = unk
 
     @classmethod
