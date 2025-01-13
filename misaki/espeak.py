@@ -5,6 +5,7 @@ FROM_ESPEAKS = sorted({'\u0303':'','a^ɪ':'I','a^ʊ':'W','d^ʒ':'ʤ','e':'A','e^
 
 class EspeakBackend:
     def __init__(self, british):
+        self.british = british
         self.backend = phonemizer.backend.EspeakBackend(language=f"en-{'gb' if british else 'us'}", preserve_punctuation=True, with_stress=True, tie='^')
 
     def __call__(self, token):
