@@ -20,4 +20,4 @@ print(phonemes) # misˈɑki ɪz ə ʤˈitəpˈi ˈɛnʤən dəzˈInd fɔɹ kˈOk
 ```
 
 ### Phonemes
-https://github.com/hexgrad/misaki/EN_PHONES.md
+https://github.com/hexgrad/misaki/blob/main/EN_PHONES.md
