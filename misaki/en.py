@@ -1,6 +1,5 @@
 from dataclasses import dataclass, replace
 from num2words import num2words
-from pathlib import Path
 from typing import Optional, Union
 import importlib.resources
 import json
@@ -108,7 +107,7 @@ def apply_stress(ps, stress):
         return ps
     if stress is None:
         return ps
-    elif stress < -1:# or (stress == -1 and PRIMARY_STRESS not in ps):
+    elif stress < -1:
         return ps.replace(PRIMARY_STRESS, '').replace(SECONDARY_STRESS, '')
     elif stress == -1 or (stress in (0, -0.5) and PRIMARY_STRESS in ps):
         return ps.replace(SECONDARY_STRESS, '').replace(PRIMARY_STRESS, SECONDARY_STRESS)
