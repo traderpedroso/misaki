@@ -94,6 +94,8 @@ US_VOCAB = frozenset('AIOWYbdfhijklmnpstuvwzæðŋɑɔəɛɜɡɪɹɾʃʊʌʒʤʧ
 GB_VOCAB = frozenset('AIQWYabdfhijklmnpstuvwzðŋɑɒɔəɛɜɡɪɹʃʊʌʒʤʧˈˌːθᵊ')
 
 STRESSES = 'ˌˈ'
+PRIMARY_STRESS = STRESSES[1]
+SECONDARY_STRESS = STRESSES[0]
 VOWELS = frozenset('AIOQWYaiuæɑɒɔəɛɜɪʊʌᵻ')
 def apply_stress(ps, stress):
     def restress(ps):
@@ -106,20 +108,20 @@ def apply_stress(ps, stress):
         return ps
     if stress is None:
         return ps
-    elif stress < -1:# or (stress == -1 and STRESSES[1] not in ps):
-        return ps.replace(STRESSES[1], '').replace(STRESSES[0], '')
-    elif stress == -1 or (stress in (0, -0.5) and STRESSES[1] in ps):
-        return ps.replace(STRESSES[0], '').replace(STRESSES[1], STRESSES[0])
+    elif stress < -1:# or (stress == -1 and PRIMARY_STRESS not in ps):
+        return ps.replace(PRIMARY_STRESS, '').replace(SECONDARY_STRESS, '')
+    elif stress == -1 or (stress in (0, -0.5) and PRIMARY_STRESS in ps):
+        return ps.replace(SECONDARY_STRESS, '').replace(PRIMARY_STRESS, SECONDARY_STRESS)
     elif stress in (0, 0.5, 1) and all(s not in ps for s in STRESSES):
         if all(v not in ps for v in VOWELS):
             return ps
-        return restress(STRESSES[0] + ps)
-    elif stress >= 1 and STRESSES[1] not in ps and STRESSES[0] in ps:
-        return ps.replace(STRESSES[0], STRESSES[1])
+        return restress(SECONDARY_STRESS + ps)
+    elif stress >= 1 and PRIMARY_STRESS not in ps and SECONDARY_STRESS in ps:
+        return ps.replace(SECONDARY_STRESS, PRIMARY_STRESS)
     elif stress > 1 and all(s not in ps for s in STRESSES):
         if all(v not in ps for v in VOWELS):
             return ps
-        return restress(STRESSES[1] + ps)
+        return restress(PRIMARY_STRESS + ps)
     return ps
 
 class Lexicon:
@@ -128,9 +130,9 @@ class Lexicon:
         self.cap_stresses = (0.5, 2)
         self.golds = {}
         self.silvers = {}
-        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_gold.json") as file:
+        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_gold.json") as r:
             self.golds = json.load(r)
-        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_silver.json") as file:
+        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_silver.json") as r:
             self.silvers = json.load(r)
         assert all(isinstance(v, str) or isinstance(v, dict) for v in self.golds.values())
         vocab = GB_VOCAB if british else US_VOCAB
@@ -147,8 +149,8 @@ class Lexicon:
         if None in ps:
             return None, None
         ps = apply_stress(''.join(ps), 0)
-        ps = ps.rsplit(STRESSES[0], 1)
-        return STRESSES[1].join(ps), 3
+        ps = ps.rsplit(SECONDARY_STRESS, 1)
+        return PRIMARY_STRESS.join(ps), 3
 
     def get_special_case(self, word, tag, ctx):
         if tag == 'ADD' and word in ADD_SYMBOLS:
@@ -160,7 +162,7 @@ class Lexicon:
         elif word == 'a' or (word == 'A' and tag == 'DT'):
             return 'ə', 4
         elif word == 'I' and tag == 'PRP':
-            return f'{STRESSES[0]}I', 4
+            return f'{SECONDARY_STRESS}I', 4
         elif word in ('to', 'To') or (word == 'TO' and tag == 'TO'):
             return {None: self.golds['to'], False: 'tə', True: 'tʊ'}[ctx.future_vowel], 4
         elif word in ('the', 'The') or (word == 'THE' and tag == 'DT'):
@@ -207,7 +209,7 @@ class Lexicon:
             elif tag not in ps:
                 tag = type(self).get_parent_tag(tag)
             ps = ps.get(tag, ps['DEFAULT'])
-        if ps is None or (is_NNP and STRESSES[1] not in ps):
+        if ps is None or (is_NNP and PRIMARY_STRESS not in ps):
             ps, rating = self.get_NNP(word)
             if ps is not None:
                 return ps, rating
@@ -572,7 +574,7 @@ class G2P:
                 t.prespace = prespace
         if prespace:
             return
-        indices = [(STRESSES[1] in t.phonemes, t.stress_weight(), i) for i, t in enumerate(tokens) if t.phonemes]
+        indices = [(PRIMARY_STRESS in t.phonemes, t.stress_weight(), i) for i, t in enumerate(tokens) if t.phonemes]
         if len(indices) == 2 and len(tokens[indices[0][2]].text) == 1:
             i = indices[1][2]
             tokens[i].phonemes = apply_stress(tokens[i].phonemes, -0.5)
