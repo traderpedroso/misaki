@@ -28,7 +28,7 @@ print(phonemes) # misˈɑki ɪz ə ʤˈitəpˈi ˈɛnʤən dəzˈInd fɔɹ kˈOk
 
 from misaki import en, espeak
 
-fallback = espeak.EspeakBackend(british=False) # en-us
+fallback = espeak.EspeakFallback(british=False) # en-us
 
 g2p = en.G2P(trf=False, british=False, fallback=fallback) # no transformer, American English
 

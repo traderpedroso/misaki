@@ -3,7 +3,7 @@ import re
 
 FROM_ESPEAKS = sorted({'\u0303':'','a^ɪ':'I','a^ʊ':'W','d^ʒ':'ʤ','e':'A','e^ɪ':'A','r':'ɹ','t^ʃ':'ʧ','x':'k','ç':'k','ɐ':'ə','ɔ^ɪ':'Y','ə^l':'ᵊl','ɚ':'əɹ','ɬ':'l','ʔ':'t','ʔn':'tᵊn','ʔˌn\u0329':'tᵊn','ʲ':'','ʲO':'jO','ʲQ':'jQ'}.items(), key=lambda kv: -len(kv[0]))
 
-class EspeakBackend:
+class EspeakFallback:
     def __init__(self, british):
         self.british = british
         self.backend = phonemizer.backend.EspeakBackend(language=f"en-{'gb' if british else 'us'}", preserve_punctuation=True, with_stress=True, tie='^')
