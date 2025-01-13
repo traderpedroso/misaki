@@ -5,8 +5,8 @@ import regex as re
 from base64 import b64decode
 from typing import Union
 
-from .hangul_classes import ConversionTable, Word
-from .hangul_rules import simplify_coda, apply_rules, transcribe, apply_phonetics
+from .classes import ConversionTable, Word
+from .rules import simplify_coda, apply_rules, transcribe, apply_phonetics
 
 
 def transcription_convention(convention: str):

@@ -1,7 +1,7 @@
 # for representing conversion tables (list of input - output pairs for a phonological rule)
 # and representing words
 
-from .hangul_tools import hangul_to_jamos
+from .tools import hangul_to_jamos
 import csv
 import importlib.resources
 import regex as re

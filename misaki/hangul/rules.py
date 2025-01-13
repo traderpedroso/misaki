@@ -1,7 +1,7 @@
 # phonological rules
 import regex as re
 
-from .hangul_classes import Word, ConversionTable
+from .classes import Word, ConversionTable
 from typing import Union
 
 

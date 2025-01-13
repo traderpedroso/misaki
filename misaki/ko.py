@@ -1,5 +1,5 @@
 from g2pk2 import G2p
-from .hangul_worker import convert
+from .hangul.worker import convert
 import re
 
 class KOG2P:
