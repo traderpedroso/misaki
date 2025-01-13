@@ -2,15 +2,18 @@ from setuptools import setup, find_packages
 
 setup(
     name='misaki',
-    version='0.2.2',
+    version='0.2.3',
     packages=find_packages(),
+    package_data={
+        'misaki': ['data/*.json'],
+    },
     install_requires=[
         'num2words',
         'regex',
         'spacy',
         'spacy-curated-transformers',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     author='hexgrad',
     author_email='hello@hexgrad.com',
     description='G2P engine for TTS',

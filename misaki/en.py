@@ -2,10 +2,12 @@ from dataclasses import dataclass, replace
 from num2words import num2words
 from pathlib import Path
 from typing import Optional, Union
+import importlib.resources
 import json
 import numpy as np
 import re
 import spacy
+from . import data
 
 DIPHTHONGS = frozenset('AIOQWYʤʧ')
 
@@ -124,12 +126,11 @@ class Lexicon:
     def __init__(self, british):
         self.british = british
         self.cap_stresses = (0.5, 2)
-        path = Path(__file__).parent / 'data'
         self.golds = {}
         self.silvers = {}
-        with open(path / f"{'gb' if british else 'us'}_gold.json", 'r') as r:
+        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_gold.json") as file:
             self.golds = json.load(r)
-        with open(path / f"{'gb' if british else 'us'}_silver.json", 'r') as r:
+        with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_silver.json") as file:
             self.silvers = json.load(r)
         assert all(isinstance(v, str) or isinstance(v, dict) for v in self.golds.values())
         vocab = GB_VOCAB if british else US_VOCAB
@@ -430,7 +431,7 @@ class Lexicon:
         return None, None
 
 class G2P:
-    def __init__(self, trf=False, british=False, fallback=None):
+    def __init__(self, trf=False, british=False, fallback=None, unk='❓'):
         self.british = british
         name = f"en_core_web_{'trf' if trf else 'sm'}"
         if not spacy.util.is_package(name):
@@ -438,6 +439,7 @@ class G2P:
         self.nlp = spacy.load(name)
         self.lexicon = Lexicon(british)
         self.fallback = fallback if fallback else (lambda _: None, None)
+        self.unk = unk
 
     @classmethod
     def preprocess(cls, text):
@@ -515,8 +517,8 @@ class G2P:
                 elif t.tag in PUNCT_TAGS:
                     t.phonemes = PUNCT_TAG_PHONEMES.get(t.tag, t.text if t.text in PUNCTS else '')
                     t.rating = 4
-                    if not t.phonemes:
-                        print('❌', 'TODO:PUNCT', t.text)
+                    # if not t.phonemes:
+                    #     print('❌', 'TODO:PUNCT', t.text)
                 elif currency is not None:
                     if t.tag != 'CD':
                         currency = None
@@ -626,5 +628,5 @@ class G2P:
             for t in (w if isinstance(w, list) else [w]):
                 if t.prespace and result and not result[-1].isspace() and t.phonemes:
                     result += ' '
-                result += ('❓' if t.phonemes is None else t.phonemes) + t.whitespace
+                result += (self.unk if t.phonemes is None else t.phonemes) + t.whitespace
         return result, tokens
