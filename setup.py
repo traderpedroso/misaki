@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='misaki',
-    version='0.2.5',
+    version='0.2.6',
     packages=find_packages(),
     package_data={
         'misaki': ['data/*.json'],
