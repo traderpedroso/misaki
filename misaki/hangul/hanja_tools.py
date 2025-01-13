@@ -1,4 +1,4 @@
-from .hangul_tools import hangul_to_jamos, jamo_to_hangul
+from .tools import hangul_to_jamos, jamo_to_hangul
 import csv
 import importlib.resources
 from . import data
