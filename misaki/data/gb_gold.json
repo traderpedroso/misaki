@@ -15279,7 +15279,10 @@
   "beekeeper": "bˈiːkiːpə",
   "beekeeping": "bˈiːkˌiːpɪŋ",
   "beeline": "bˈiːlIn",
-  "been": "bˌiːn",
+  "been": {
+    "DEFAULT": "biːn",
+    "None": "bˌiːn"
+  },
   "been-to": "bˈiːntuː",
   "beep": "bˈiːp",
   "beeper": "bˈiːpə",
