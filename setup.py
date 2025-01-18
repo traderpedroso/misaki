@@ -15,6 +15,7 @@ setup(
         'ja': ['fugashi', 'jaconv', 'mojimoji', 'unicodedata2', 'unidic-lite'],
         'ko': ['g2pk2'],
         'zh': ['jieba', 'ordered-set', 'pypinyin'],
+        'vi': ['num2words', 'spacy', 'spacy-curated-transformers', 'underthesea']
     },
     python_requires='>=3.7',
     author='hexgrad',
