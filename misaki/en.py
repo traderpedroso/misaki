@@ -439,7 +439,7 @@ class G2P:
             spacy.cli.download(name)
         self.nlp = spacy.load(name)
         self.lexicon = Lexicon(british)
-        self.fallback = fallback if fallback else (lambda _: (None, None))
+        self.fallback = fallback if fallback else None
         self.unk = unk
 
     @classmethod
@@ -543,8 +543,8 @@ class G2P:
         return TokenContext(future_vowel=vowel)
 
     @classmethod
-    def merge_tokens(cls, tokens):
-        if any(t.alias is not None or t.phonemes is not None for t in tokens):
+    def merge_tokens(cls, tokens, force=False):
+        if not force and any(t.alias is not None or t.phonemes is not None for t in tokens):
             return None
         text = ''.join(t.text + t.whitespace for t in tokens[:-1]) + tokens[-1].text
         tag = max(tokens, key=lambda t: sum(1 if c == c.lower() else 2 for c in t.text)).tag
@@ -594,11 +594,12 @@ class G2P:
             if not isinstance(w, list):
                 if w.phonemes is None:
                     w.phonemes, w.rating = self.lexicon(replace(w), ctx)
-                if w.phonemes is None:
+                if w.phonemes is None and self.fallback is not None:
                     w.phonemes, w.rating = self.fallback(replace(w))
                 ctx = type(self).token_context(ctx, w.phonemes)
                 continue
             left, right = 0, len(w)
+            should_fallback = False
             while left < right:
                 t = type(self).merge_tokens(w[left:right])
                 ps, rating = (None, None) if t is None else self.lexicon(t, ctx)
@@ -620,10 +621,18 @@ class G2P:
                         if all(c in SUBTOKEN_JUNKS for c in t.text):
                             t.phonemes = ''
                             t.rating = 3
-                        else:
-                            t.phonemes, t.rating = self.fallback(replace(t))
+                        elif self.fallback is not None:
+                            should_fallback = True
+                            break
                     left = 0
-            type(self).resolve_tokens(w)
+            if should_fallback:
+                t = type(self).merge_tokens(w, force=True)
+                w[0].phonemes, w[0].rating = self.fallback(t)
+                for j in range(1, len(w)):
+                    w[j].phonemes = ''
+                    w[j].rating = w[0].rating
+            else:
+                type(self).resolve_tokens(w)
         result = ''
         for w in tokens:
             for t in (w if isinstance(w, list) else [w]):
