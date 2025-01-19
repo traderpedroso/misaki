@@ -71,7 +71,7 @@ PUNCTS = frozenset(';:,.!?—…"“”')
 NON_QUOTE_PUNCTS = frozenset(p for p in PUNCTS if p not in '"“”')
 
 # https://github.com/explosion/spaCy/blob/master/spacy/glossary.py
-PUNCT_TAGS = frozenset([".",",","-LRB-","-RRB-","``",'""',"''",":","$","#"])
+PUNCT_TAGS = frozenset([".",",","-LRB-","-RRB-","``",'""',"''",":","$","#",'NFP'])
 PUNCT_TAG_PHONEMES = {'-LRB-':'(', '-RRB-':')', '``':chr(8220), '""':chr(8221), "''":chr(8221)}
 
 LEXICON_ORDS = [39, 45, *range(65, 91), *range(97, 123)]
@@ -516,7 +516,7 @@ class G2P:
                     t.phonemes = '—'
                     t.rating = 3
                 elif t.tag in PUNCT_TAGS:
-                    t.phonemes = PUNCT_TAG_PHONEMES.get(t.tag, t.text if t.text in PUNCTS else '')
+                    t.phonemes = PUNCT_TAG_PHONEMES.get(t.tag, ''.join(c for c in t.text if c in PUNCTS))
                     t.rating = 4
                     # if not t.phonemes:
                     #     print('❌', 'TODO:PUNCT', t.text)
