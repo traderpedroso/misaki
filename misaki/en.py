@@ -89,8 +89,8 @@ ORDINALS = frozenset(['st', 'nd', 'rd', 'th'])
 ADD_SYMBOLS = {'.':'dot', '/':'slash'}
 SYMBOLS = {'%':'percent', '&':'and', '+':'plus', '@':'at'}
 
-US_VOCAB = frozenset('AIOWYbdfhijklmnpstuvwzæðŋɑɔəɛɜɡɪɹɾʃʊʌʒʤʧˈˌθᵊᵻ')
-GB_VOCAB = frozenset('AIQWYabdfhijklmnpstuvwzðŋɑɒɔəɛɜɡɪɹʃʊʌʒʤʧˈˌːθᵊ')
+US_VOCAB = frozenset('AIOWYbdfhijklmnpstuvwzæðŋɑɔəɛɜɡɪɹɾʃʊʌʒʤʧˈˌθᵊᵻ') # ɐ
+GB_VOCAB = frozenset('AIQWYabdfhijklmnpstuvwzðŋɑɒɔəɛɜɡɪɹʃʊʌʒʤʧˈˌːθᵊ') # ɐ
 
 STRESSES = 'ˌˈ'
 PRIMARY_STRESS = STRESSES[1]
@@ -151,7 +151,7 @@ class Lexicon:
         ps = ps.rsplit(SECONDARY_STRESS, 1)
         return PRIMARY_STRESS.join(ps), 3
 
-    def get_special_case(self, word, tag, ctx):
+    def get_special_case(self, word, tag, stress, ctx):
         if tag == 'ADD' and word in ADD_SYMBOLS:
             return self.lookup(ADD_SYMBOLS[word], None, -0.5, ctx)
         elif word in SYMBOLS:
@@ -159,7 +159,17 @@ class Lexicon:
         elif '.' in word.strip('.') and word.replace('.', '').isalpha() and len(max(word.split('.'), key=len)) < 3:
             return self.get_NNP(word)
         elif word == 'a' or (word == 'A' and tag == 'DT'):
-            return 'ə', 4
+            return 'ɐ', 4
+        elif word in ('am', 'Am', 'AM'):
+            if tag.startswith('NN'):
+                return self.get_NNP(word)
+            elif ctx.future_vowel is None or word != 'am' or stress and stress > 0:
+                return self.golds['am']
+            return 'ɐm', 4
+        elif word in ('an', 'An', 'AN'):
+            if word == 'AN' and tag.startswith('NN'):
+                return self.get_NNP(word)
+            return 'ɐn', 4
         elif word == 'I' and tag == 'PRP':
             return f'{SECONDARY_STRESS}I', 4
         elif word in ('to', 'To') or (word == 'TO' and tag == 'TO'):
@@ -290,7 +300,7 @@ class Lexicon:
         return self._ing(stem), rating
 
     def get_word(self, word, tag, stress, ctx):
-        ps, rating = self.get_special_case(word, tag, ctx)
+        ps, rating = self.get_special_case(word, tag, stress, ctx)
         if ps is not None:
             return ps, rating
         elif self.is_known(word, tag):
