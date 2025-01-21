@@ -164,7 +164,7 @@ class Lexicon:
             if tag.startswith('NN'):
                 return self.get_NNP(word)
             elif ctx.future_vowel is None or word != 'am' or stress and stress > 0:
-                return self.golds['am']
+                return self.golds['am'], 4
             return 'ɐm', 4
         elif word in ('an', 'An', 'AN'):
             if word == 'AN' and tag.startswith('NN'):
