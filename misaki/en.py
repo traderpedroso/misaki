@@ -175,7 +175,7 @@ class Lexicon:
         elif word in ('by', 'By', 'BY'):
             if type(self).get_parent_tag(tag) == 'ADV':
                 return 'bˈI', 4
-            return self.lookup(word, None, None, ctx)
+            return self.lookup(word, tag, stress, ctx)
         elif word in ('to', 'To') or (word == 'TO' and tag == 'TO'):
             return {None: self.golds['to'], False: 'tə', True: 'tʊ'}[ctx.future_vowel], 4
         elif word in ('the', 'The') or (word == 'THE' and tag == 'DT'):
@@ -186,7 +186,9 @@ class Lexicon:
 
     @classmethod
     def get_parent_tag(cls, tag):
-        if tag.startswith('VB'):
+        if tag is None:
+            return tag
+        elif tag.startswith('VB'):
             return 'VERB'
         elif tag.startswith('NN'):
             return 'NOUN'
@@ -194,8 +196,7 @@ class Lexicon:
             return 'ADV'
         elif tag.startswith('ADJ') or tag.startswith('JJ'):
             return 'ADJ'
-        else:
-            return tag
+        return tag
 
     def is_known(self, word, tag):
         if word in self.golds or word in SYMBOLS or word in self.silvers:
