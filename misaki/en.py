@@ -172,6 +172,10 @@ class Lexicon:
             return 'ɐn', 4
         elif word == 'I' and tag == 'PRP':
             return f'{SECONDARY_STRESS}I', 4
+        elif word in ('by', 'By', 'BY'):
+            if type(self).get_parent_tag(tag) == 'ADV':
+                return 'bˈI', 4
+            return self.lookup(word, None, None, ctx)
         elif word in ('to', 'To') or (word == 'TO' and tag == 'TO'):
             return {None: self.golds['to'], False: 'tə', True: 'tʊ'}[ctx.future_vowel], 4
         elif word in ('the', 'The') or (word == 'THE' and tag == 'DT'):
@@ -186,7 +190,7 @@ class Lexicon:
             return 'VERB'
         elif tag.startswith('NN'):
             return 'NOUN'
-        elif tag.startswith('ADV') or tag.startswith('RB'): # TODO: RP?
+        elif tag.startswith('ADV') or tag.startswith('RB') or tag == 'RP':
             return 'ADV'
         elif tag.startswith('ADJ') or tag.startswith('JJ'):
             return 'ADJ'
