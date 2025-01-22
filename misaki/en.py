@@ -190,7 +190,7 @@ class Lexicon:
             return 'VERB'
         elif tag.startswith('NN'):
             return 'NOUN'
-        elif tag.startswith('ADV') or tag.startswith('RB') or tag == 'RP':
+        elif tag.startswith('ADV') or tag.startswith('RB'): #or tag == 'RP':
             return 'ADV'
         elif tag.startswith('ADJ') or tag.startswith('JJ'):
             return 'ADJ'
