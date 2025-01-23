@@ -124,15 +124,29 @@ def apply_stress(ps, stress):
     return ps
 
 class Lexicon:
+    @classmethod
+    def grow_dictionary(cls, d):
+        # HACK: Inefficient but correct.
+        e = {}
+        for k, v in d.items():
+            if len(k) < 2:
+                continue
+            if k == k.lower():
+                if k != k.capitalize():
+                    e[k.capitalize()] = v
+            elif k == k.lower().capitalize():
+                e[k.lower()] = v
+        return {**e, **d}
+
     def __init__(self, british):
         self.british = british
         self.cap_stresses = (0.5, 2)
         self.golds = {}
         self.silvers = {}
         with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_gold.json") as r:
-            self.golds = json.load(r)
+            self.golds = type(self).grow_dictionary(json.load(r))
         with importlib.resources.open_text(data, f"{'gb' if british else 'us'}_silver.json") as r:
-            self.silvers = json.load(r)
+            self.silvers = type(self).grow_dictionary(json.load(r))
         assert all(isinstance(v, str) or isinstance(v, dict) for v in self.golds.values())
         vocab = GB_VOCAB if british else US_VOCAB
         for vs in self.golds.values():
