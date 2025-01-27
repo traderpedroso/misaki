@@ -26,4 +26,5 @@ class EspeakFallback:
             ps = ps.replace('ɜː', 'ɜɹ')
             ps = ps.replace('ɪə', 'iə')
             ps = ps.replace('ː', '')
+        ps = ps.replace('o', 'ɔ') # for espeak < 1.52
         return ps.replace('^', ''), 2
