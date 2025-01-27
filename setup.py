@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='misaki',
-    version='0.5.9',
+    version='0.6.0',
     packages=find_packages(),
     package_data={
         'misaki': ['data/*.json', 'data/*.txt', 'hangul/data/*.csv', 'hangul/data/*.tsv'],
@@ -11,7 +11,7 @@ setup(
         'regex',
     ],
     extras_require={
-        'en': ['num2words', 'spacy', 'spacy-curated-transformers'],
+        'en': ['num2words', 'spacy', 'spacy-curated-transformers', 'phonemizer'],
         'ja': ['fugashi', 'jaconv', 'mojimoji', 'unidic-lite'],
         'ko': ['g2pk2'],
         'zh': ['jieba', 'ordered-set', 'pypinyin'],
