@@ -6,6 +6,7 @@ import json
 import numpy as np
 import re
 import spacy
+import unicodedata
 from . import data
 
 DIPHTHONGS = frozenset('AIOQWYʤʧ')
@@ -443,6 +444,7 @@ class Lexicon:
 
     def __call__(self, t, ctx):
         word = (t.text if t.alias is None else t.alias).replace(chr(8216), "'").replace(chr(8217), "'")
+        word = unicodedata.normalize('NFKC', word)
         stress = None if word == word.lower() else self.cap_stresses[int(word == word.upper())]
         ps, rating = self.get_word(word, t.tag, stress, ctx)
         if ps is not None:
