@@ -1,3 +1,4 @@
+from . import data
 from dataclasses import dataclass, replace
 from num2words import num2words
 from typing import Optional, Union
@@ -7,12 +8,11 @@ import numpy as np
 import re
 import spacy
 import unicodedata
-from . import data
 
 DIPHTHONGS = frozenset('AIOQWYʤʧ')
 
 @dataclass
-class MutableToken:
+class MToken:
     text: str
     tag: str
     whitespace: str
@@ -24,7 +24,9 @@ class MutableToken:
     num_flags: str = ''
     prespace: bool = False
     rating: Optional[int] = None
-    
+    start_ts: Optional[float] = None
+    end_ts: Optional[float] = None
+
     def stress_weight(self):
         return sum(2 if c in DIPHTHONGS else 1 for c in self.phonemes) if self.phonemes else 0
 
@@ -506,7 +508,7 @@ class G2P:
     def tokenize(self, text, tokens, features):
         doc = self.nlp(text)
         # print(doc._.trf_data.all_outputs[0].data.shape, doc._.trf_data.all_outputs[0].lengths)
-        mutable_tokens = [MutableToken(text=t.text, tag=t.tag_, whitespace=t.whitespace_) for t in doc]
+        mutable_tokens = [MToken(text=t.text, tag=t.tag_, whitespace=t.whitespace_) for t in doc]
         if not features:
             return mutable_tokens
         align = spacy.training.Alignment.from_strings(tokens, [t.text for t in mutable_tokens])
@@ -584,7 +586,9 @@ class G2P:
         currency = {t.currency for t in tokens if t.currency is not None}
         currency = max(currency) if currency else None
         num_flags = ''.join(sorted({c for t in tokens for c in t.num_flags}))
-        return MutableToken(text=text, tag=tag, whitespace=whitespace, is_head=is_head, stress=stress, currency=currency, num_flags=num_flags)
+        rating = {t.rating for t in tokens}
+        rating = None if None in rating else min(rating)
+        return MToken(text=text, tag=tag, whitespace=whitespace, is_head=is_head, stress=stress, currency=currency, num_flags=num_flags, rating=rating)
 
     @classmethod
     def resolve_tokens(cls, tokens):
@@ -663,9 +667,15 @@ class G2P:
             else:
                 type(self).resolve_tokens(w)
         result = ''
+        flat_tokens = []
         for w in tokens:
+            ps = ''
             for t in (w if isinstance(w, list) else [w]):
-                if t.prespace and result and not result[-1].isspace() and t.phonemes:
-                    result += ' '
-                result += (self.unk if t.phonemes is None else t.phonemes) + t.whitespace
-        return result, tokens
+                if t.prespace and (result + ps) and not (result + ps)[-1].isspace() and t.phonemes:
+                    ps += ' '
+                ps += (self.unk if t.phonemes is None else t.phonemes) #+ t.whitespace
+            result += ps + t.whitespace
+            token = type(self).merge_tokens(w, force=True) if isinstance(w, list) else w
+            token.phonemes = ps
+            flat_tokens.append(token)
+        return result, flat_tokens
