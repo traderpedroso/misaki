@@ -58,10 +58,11 @@ print(phonemes) # nˈW Wɾɑfdˈɪkʃənˌɛɹi wˈɜɹdz ɑɹ hˈændəld bI ˈ
 - https://github.com/studio-ousia/mojimoji
 
 ### Korean
+- https://github.com/5Hyeons/StyleTTS2/tree/vocos/g2pK/g2pkc
 - https://github.com/tenebo/g2pk2
-- https://github.com/stannam/hangul_to_ipa
 
 ### Chinese
+- https://github.com/PaddlePaddle/PaddleSpeech/tree/develop/paddlespeech/t2s/frontend
 - https://github.com/fxsjy/jieba
 - https://github.com/mozillazg/python-pinyin
 - https://github.com/stefantaubert/pinyin-to-ipa
