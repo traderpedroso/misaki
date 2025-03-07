@@ -108,7 +108,7 @@ class EspeakG2P:
             elif language.startswith("de"):
                 model = "de_core_news_sm"
             elif language.startswith("pt"):
-                model = "pt_core_news_sm"
+                model = "en_core_web_sm"
             else:
                 model = "xx_ent_wiki_sm"
 
@@ -157,13 +157,10 @@ class EspeakG2P:
 
     def __call__(self, text: str, preprocess=True) -> Tuple[str, List[MToken]]:
         # Original phoneme processing
-
-        text = text.replace("«", chr(8220)).replace("»", chr(8221))
-        text = text.replace("(", "«").replace(")", "»")
-        text = text.replace("^", "").replace("´", "")
-        text = unicodedata.normalize("NFC", text)
-
-        ps = self.backend.phonemize([text])
+        text = unicodedata.normalize("NFKC", text)
+        text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
+        text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
+        ps = self.backend.phonemize([text_for_phonemes])
         if not ps:
             phonemes = ""
         else:
