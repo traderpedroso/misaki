@@ -160,6 +160,7 @@ class EspeakG2P:
 
         text = text.replace("«", chr(8220)).replace("»", chr(8221))
         text = text.replace("(", "«").replace(")", "»")
+        text = text.replace("^", "").replace("´", "")
         text = unicodedata.normalize("NFC", text)
 
         ps = self.backend.phonemize([text])
