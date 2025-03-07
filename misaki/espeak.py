@@ -96,7 +96,6 @@ class EspeakG2P:
             preserve_punctuation=True,
             with_stress=True,
             tie="^",
-            words_mismatch="ignore",
             language_switch="remove-flags",
         )
         try:
@@ -158,8 +157,9 @@ class EspeakG2P:
 
     def __call__(self, text: str, preprocess=True) -> Tuple[str, List[MToken]]:
         # Original phoneme processing
-        # text = unicodedata.normalize("NFC", text)
-        text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
+        text = unicodedata.normalize("NFC", text)
+        text = text.replace("«", chr(8220)).replace("»", chr(8221))
+        text_for_phonemes = tokens.text.replace("«", chr(8220)).replace("»", chr(8221))
         text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
         ps = self.backend.phonemize([text_for_phonemes])
         if not ps:
