@@ -72,7 +72,21 @@ class EspeakFallback:
 
 
 class EspeakG2P:
-    E2M = sorted({}.items())
+    E2M = sorted(
+        {
+            "a^ɪ": "I",
+            "a^ʊ": "W",
+            "d^z": "ʣ",
+            "d^ʒ": "ʤ",
+            "e^ɪ": "A",
+            "o^ʊ": "O",
+            "ə^ʊ": "Q",
+            "s^s": "S",
+            "t^s": "ʦ",
+            "t^ʃ": "ʧ",
+            "ɔ^ɪ": "Y",
+        }.items()
+    )
 
     def __init__(self, language, unk="❓"):
         self.language = language
@@ -143,7 +157,7 @@ class EspeakG2P:
 
     def __call__(self, text: str, preprocess=True) -> Tuple[str, List[MToken]]:
         # Original phoneme processing
-        text = unicodedata.normalize("NFKC", text)
+        text = unicodedata.normalize("NFC", text)
         text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
         text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
         ps = self.backend.phonemize([text_for_phonemes])
