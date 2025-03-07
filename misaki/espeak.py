@@ -96,6 +96,7 @@ class EspeakG2P:
             preserve_punctuation=True,
             with_stress=True,
             tie="^",
+            words_mismatch="ignore",
             language_switch="remove-flags",
         )
         try:
