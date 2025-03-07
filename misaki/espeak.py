@@ -157,12 +157,12 @@ class EspeakG2P:
 
     def __call__(self, text: str, preprocess=True) -> Tuple[str, List[MToken]]:
         # Original phoneme processing
-        text = unicodedata.normalize("NFC", text)
+
         text = text.replace("«", chr(8220)).replace("»", chr(8221))
         text = text.replace("(", "«").replace(")", "»")
-        text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
-        text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
-        ps = self.backend.phonemize([text_for_phonemes])
+        text = unicodedata.normalize("NFC", text)
+
+        ps = self.backend.phonemize([text])
         if not ps:
             phonemes = ""
         else:
