@@ -101,16 +101,8 @@ class EspeakG2P:
         try:
             if language.startswith("en"):
                 model = "en_core_web_sm"
-            elif language.startswith("es"):
-                model = "es_core_news_sm"
-            elif language.startswith("fr"):
-                model = "fr_core_news_sm"
-            elif language.startswith("de"):
-                model = "de_core_news_sm"
             elif language.startswith("pt"):
                 model = "en_core_web_sm"
-            else:
-                model = "xx_ent_wiki_sm"
 
             if not spacy.util.is_package(model):
                 spacy.cli.download(model)
