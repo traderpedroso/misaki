@@ -153,6 +153,7 @@ class EspeakG2P:
         # Original phoneme processing
         if self.language == "pt-br":
             text = text.replace("porque", "porquê")
+            text = text.replace("metas", "métas")
         text = unicodedata.normalize("NFC", text)
         text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
         text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
