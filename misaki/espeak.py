@@ -103,6 +103,8 @@ class EspeakG2P:
                 model = "en_core_web_sm"
             elif language.startswith("pt"):
                 model = "en_core_web_sm"
+            else:
+                model = "en_core_web_sm"
 
             if not spacy.util.is_package(model):
                 spacy.cli.download(model)
@@ -151,44 +153,28 @@ class EspeakG2P:
         # Original phoneme processing
         if self.language == "pt-br":
             text = text.replace("porque", "porquê")
-            text = unicodedata.normalize("NFC", text)
-            text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
-            text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
-            ps = self.backend.phonemize([text_for_phonemes])
-            if not ps:
-                phonemes = ""
-            else:
-                phonemes = ps[0].strip()
-                for old, new in type(self).E2M:
-                    phonemes = phonemes.replace(old, new)
-                phonemes = phonemes.replace("^", "").replace("-", "")
-                phonemes = phonemes.replace("«", "(").replace("»", ")")
-
-            # Token processing
-            tokens = self.tokenize(text)
-            for token in tokens:
-                token_ps = self.backend.phonemize([token.text])
-                if token_ps and token_ps[0].strip():
-                    token.phonemes = token_ps[0].strip()
-                    token.rating = 3
-                else:
-                    token.phonemes = self.unk
-                    token.rating = 1
-
-            return phonemes, tokens
+        text = unicodedata.normalize("NFC", text)
+        text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
+        text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
+        ps = self.backend.phonemize([text_for_phonemes])
+        if not ps:
+            phonemes = ""
         else:
-            # Angles to curly quotes
-            text = text.replace("«", chr(8220)).replace("»", chr(8221))
-            # Parentheses to angles
-            text = text.replace("(", "«").replace(")", "»")
-            ps = self.backend.phonemize([text])
-            if not ps:
-                return "", None
-            ps = ps[0].strip()
+            phonemes = ps[0].strip()
             for old, new in type(self).E2M:
-                ps = ps.replace(old, new)
-            # Delete any remaining tie characters, hyphens (not sure what they mean)
-            ps = ps.replace("^", "").replace("-", "")
-            # Angles back to parentheses
-            ps = ps.replace("«", "(").replace("»", ")")
-            return ps, None
+                phonemes = phonemes.replace(old, new)
+            phonemes = phonemes.replace("^", "").replace("-", "")
+            phonemes = phonemes.replace("«", "(").replace("»", ")")
+
+        # Token processing
+        tokens = self.tokenize(text)
+        for token in tokens:
+            token_ps = self.backend.phonemize([token.text])
+            if token_ps and token_ps[0].strip():
+                token.phonemes = token_ps[0].strip()
+                token.rating = 3
+            else:
+                token.phonemes = self.unk
+                token.rating = 1
+
+        return phonemes, tokens
