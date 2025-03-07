@@ -4,11 +4,11 @@ import espeakng_loader
 import phonemizer
 import re
 from .token import MToken
-from dataclasses import replace
-import unicodedata
 import spacy
+import unicodedata
 
 
+# EspeakFallback remains exactly the same as original
 class EspeakFallback:
     E2M = sorted(
         {
@@ -108,7 +108,7 @@ class EspeakG2P:
             elif language.startswith("de"):
                 model = "de_core_news_sm"
             elif language.startswith("pt"):
-                model = "en_core_web_sm"
+                model = "pt_core_news_sm"
             else:
                 model = "xx_ent_wiki_sm"
 
@@ -141,13 +141,7 @@ class EspeakG2P:
             for t in doc:
                 tag = t.tag_ if t.tag_ else t.pos_
                 tokens.append(
-                    MToken(
-                        text=t.text,
-                        tag=tag,
-                        whitespace=t.whitespace_,
-                        is_head=True,
-                        rating=None,
-                    )
+                    MToken(text=t.text, tag=tag, whitespace=t.whitespace_, is_head=True)
                 )
             return tokens
         else:
@@ -157,47 +151,34 @@ class EspeakG2P:
                 whitespace = " " if i < len(words) - 1 else ""
                 tag = self.get_default_tag(word)
                 tokens.append(
-                    MToken(
-                        text=word,
-                        tag=tag,
-                        whitespace=whitespace,
-                        is_head=True,
-                        rating=None,
-                    )
+                    MToken(text=word, tag=tag, whitespace=whitespace, is_head=True)
                 )
             return tokens
 
-    def process_token(self, token: MToken) -> None:
-        if token.phonemes is not None:
-            return
-
-        text = token.text.replace("«", chr(8220)).replace("»", chr(8221))
-        text = text.replace("(", "«").replace(")", "»")
-
-        ps = self.backend.phonemize([text])
-        if not ps or not ps[0].strip():
-            token.phonemes = self.unk
-            token.rating = 1
-            return
-
-        ps = ps[0].strip()
-        for old, new in type(self).E2M:
-            ps = ps.replace(old, new)
-        ps = ps.replace("^", "").replace("-", "")
-        ps = ps.replace("«", "(").replace("»", ")")
-
-        token.phonemes = ps
-        token.rating = 3
-
     def __call__(self, text: str, preprocess=True) -> Tuple[str, List[MToken]]:
+        # Original phoneme processing
         text = unicodedata.normalize("NFKC", text)
+        text_for_phonemes = text.replace("«", chr(8220)).replace("»", chr(8221))
+        text_for_phonemes = text_for_phonemes.replace("(", "«").replace(")", "»")
+        ps = self.backend.phonemize([text_for_phonemes])
+        if not ps:
+            phonemes = ""
+        else:
+            phonemes = ps[0].strip()
+            for old, new in type(self).E2M:
+                phonemes = phonemes.replace(old, new)
+            phonemes = phonemes.replace("^", "").replace("-", "")
+            phonemes = phonemes.replace("«", "(").replace("»", ")")
+
+        # Token processing
         tokens = self.tokenize(text)
-
         for token in tokens:
-            self.process_token(token)
+            token_ps = self.backend.phonemize([token.text])
+            if token_ps and token_ps[0].strip():
+                token.phonemes = token_ps[0].strip()
+                token.rating = 3
+            else:
+                token.phonemes = self.unk
+                token.rating = 1
 
-        result = "".join(
-            (token.phonemes or self.unk) + token.whitespace for token in tokens
-        )
-
-        return result, tokens
+        return phonemes, tokens
