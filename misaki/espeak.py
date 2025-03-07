@@ -1,8 +1,9 @@
 from phonemizer.backend.espeak.wrapper import EspeakWrapper
-from typing import Tuple
+from typing import Tuple, List, Optional, Union
 import espeakng_loader
 import phonemizer
 import re
+from misaki.token import MToken
 
 
 # EspeakFallback is used as a last resort for English
@@ -59,7 +60,7 @@ class EspeakFallback:
             ps = ps.replace(old, new)
         ps = re.sub(r"(\S)\u0329", r"ᵊ\1", ps).replace(chr(809), "")
         if self.output_tokens:
-            ps = ps.split()
+            return self._create_mtokens(token.text, ps.replace("^", "")), 2
         else:
             if self.british:
                 ps = ps.replace("e^ə", "ɛː")
@@ -73,7 +74,24 @@ class EspeakFallback:
                 ps = ps.replace("ː", "")
             ps = ps.replace("o", "ɔ")  # for espeak < 1.52
             ps = ps.replace("^", "")
-        return ps, 2
+            return ps, 2
+
+    def _create_mtokens(self, text, phonemes):
+        tokens = []
+        phoneme_tokens = phonemes.split()
+        mtokens = []
+        text_tokens = text.split()  # Simple space-based tokenization for now
+
+        # Basic tokenization - may need refinement
+        for i, token_text in enumerate(text_tokens):
+            phoneme = (
+                phoneme_tokens[i] if i < len(phoneme_tokens) else ""
+            )  # Handle potential mismatch
+            mtokens.append(
+                MToken(text=token_text, phonemes=phoneme, tag="UNK", whitespace=" ")
+            )  # Basic tag and whitespace
+
+        return mtokens
 
 
 # EspeakG2P used for most non-English/CJK languages
@@ -117,10 +135,27 @@ class EspeakG2P:
         for old, new in type(self).E2M:
             ps = ps.replace(old, new)
         if self.output_tokens:
-            ps = ps.split()
+            return self._create_mtokens(text, ps), None
         else:
             # Delete any remaining tie characters, hyphens (not sure what they mean)
             ps = ps.replace("^", "").replace("-", "")
             # Angles back to parentheses
             ps = ps.replace("«", "(").replace("»", ")")
-        return ps, None
+            return ps, None
+
+    def _create_mtokens(self, text, phonemes):
+        tokens = []
+        phoneme_tokens = phonemes.split()
+        mtokens = []
+        text_tokens = text.split()  # Simple space-based tokenization for now
+
+        # Basic tokenization - may need refinement
+        for i, token_text in enumerate(text_tokens):
+            phoneme = (
+                phoneme_tokens[i] if i < len(phoneme_tokens) else ""
+            )  # Handle potential mismatch
+            mtokens.append(
+                MToken(text=token_text, phonemes=phoneme, tag="UNK", whitespace=" ")
+            )  # Basic tag and whitespace
+
+        return mtokens
