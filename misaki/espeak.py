@@ -108,7 +108,7 @@ class EspeakG2P:
             elif language.startswith("de"):
                 model = "de_core_news_sm"
             elif language.startswith("pt"):
-                model = "pt_core_news_sm"
+                model = "en_core_web_sm"
             else:
                 model = "xx_ent_wiki_sm"
 
